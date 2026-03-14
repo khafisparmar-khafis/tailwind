@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EconPro | Analytics Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans h-screen flex overflow-hidden">
+
+    <aside class="w-64 bg-slate-900 text-white flex flex-col hidden md:flex">
+        <div class="p-6 text-2xl font-bold border-b border-slate-700 tracking-tight">
+            Econ<span class="text-blue-500">Pro</span>
+        </div>
+        <nav class="flex-grow p-4 space-y-2">
+            <button onclick="navigate('dashboard')" id="nav-dashboard" class="w-full text-left px-4 py-3 rounded-lg bg-blue-600 font-medium transition flex items-center gap-3">
+                📊 Market Dashboard
+            </button>
+            <button onclick="navigate('tools')" id="nav-tools" class="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-300 transition flex items-center gap-3">
+                🧮 Calculators
+            </button>
+            <button onclick="navigate('database')" id="nav-database" class="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-300 transition flex items-center gap-3">
+                🗄️ Global Database
+            </button>
+        </nav>
+    </aside>
+
+    <main class="flex-grow flex flex-col h-full overflow-y-auto bg-slate-100">
+        
+        <header class="bg-white shadow-sm border-b border-slate-200 px-8 py-4 flex justify-between items-center sticky top-0 z-10">
+            <h1 id="page-title" class="text-2xl font-bold text-slate-800">Market Dashboard</h1>
+            <div class="text-sm text-slate-500 font-mono" id="live-clock">00:00:00</div>
+        </header>
+
+        <div class="p-8">
+            <div id="view-dashboard" class="block space-y-8">
+                
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-lg font-bold">Global Economic Indicators</h2>
+                        <div class="space-x-2">
+                            <button onclick="updateGraph('gdp')" class="px-4 py-2 text-sm bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-md font-medium transition">GDP Growth (%)</button>
+                            <button onclick="updateGraph('inflation')" class="px-4 py-2 text-sm bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 rounded-md font-medium transition">Inflation Rate (%)</button>
+                        </div>
+                    </div>
+                    
+                    <div class="relative h-80 w-full">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-tools" class="hidden space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <h2 class="text-lg font-bold mb-4">Live Currency Converter</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm text-slate-600 mb-1">Amount</label>
+                                <input type="number" id="conv-amount" value="1000" oninput="convertCurrency()" class="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="w-1/2">
+                                    <label class="block text-sm text-slate-600 mb-1">From</label>
+                                    <select id="conv-from" onchange="convertCurrency()" class="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                                        <option value="USD">USD ($)</option>
+                                        <option value="EUR">EUR (€)</option>
+                                        <option value="GBP">GBP (£)</option>
+                                        <option value="INR">INR (₹)</option>
+                                    </select>
+                                </div>
+                                <div class="w-1/2">
+                                    <label class="block text-sm text-slate-600 mb-1">To</label>
+                                    <select id="conv-to" onchange="convertCurrency()" class="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                                        <option value="INR">INR (₹)</option>
+                                        <option value="EUR">EUR (€)</option>
+                                        <option value="USD">USD ($)</option>
+                                        <option value="GBP">GBP (£)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-lg mt-4 text-center border border-slate-200">
+                                <span class="text-sm text-slate-500">Converted Amount</span>
+                                <div id="conv-result" class="text-3xl font-bold text-blue-600 mt-1">₹83,100.00</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <h2 class="text-lg font-bold mb-4">Investment Yield Calculator</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm text-slate-600 mb-1">Initial Principal ($)</label>
+                                <input type="number" id="calc-principal" value="10000" class="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="w-1/2">
+                                    <label class="block text-sm text-slate-600 mb-1">Annual Rate (%)</label>
+                                    <input type="number" id="calc-rate" value="5" class="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                                </div>
+                                <div class="w-1/2">
+                                    <label class="block text-sm text-slate-600 mb-1">Years</label>
+                                    <input type="number" id="calc-years" value="10" class="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                                </div>
+                            </div>
+                            <button onclick="calculateInterest()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-md transition mt-2">
+                                Calculate Yield
+                            </button>
+                            <div id="calc-result" class="hidden bg-green-50 p-4 rounded-lg mt-4 text-center border border-green-200 text-green-800 font-bold">
+                                </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-database" class="hidden space-y-6">
+                
+                <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <div class="w-1/2 relative">
+                        <input type="text" id="search-input" onkeyup="filterTable()" placeholder="Search countries..." class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                        <span class="absolute left-3 top-2.5 text-slate-400">🔍</span>
+                    </div>
+                    
+                    <button onclick="downloadCSV()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 shadow-sm">
+                        📥 Export CSV
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <table class="w-full text-left border-collapse" id="data-table">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 border-b border-slate-200 text-sm uppercase tracking-wider">
+                                <th class="p-4 font-semibold">Country</th>
+                                <th class="p-4 font-semibold">GDP (Trillions)</th>
+                                <th class="p-4 font-semibold">Inflation Rate</th>
+                                <th class="p-4 font-semibold">Interest Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100" id="table-body">
+                            </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- 1. Navigation / Routing Logic ---
+        function navigate(viewId) {
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-tools').classList.add('hidden');
+            document.getElementById('view-database').classList.add('hidden');
+            
+            document.getElementById('view-' + viewId).classList.remove('hidden');
+            
+            const titles = { 'dashboard': 'Market Dashboard', 'tools': 'Economic Calculators', 'database': 'Global Database' };
+            document.getElementById('page-title').innerText = titles[viewId];
+
+            const navIds = ['nav-dashboard', 'nav-tools', 'nav-database'];
+            navIds.forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.remove('bg-blue-600', 'text-white');
+                el.classList.add('hover:bg-slate-800', 'text-slate-300');
+            });
+
+            const activeBtn = document.getElementById('nav-' + viewId);
+            activeBtn.classList.remove('hover:bg-slate-800', 'text-slate-300');
+            activeBtn.classList.add('bg-blue-600', 'text-white');
+        }
+
+        // --- 2. Chart.js Real Graph Logic ---
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        
+        // Data sets
+        const gdpData = [2.5, 0.8, 6.3, 1.2, 0.5];
+        const inflationData = [3.2, 2.9, 5.1, 2.2, 4.0];
+        const labels = ['United States', 'European Union', 'India', 'Japan', 'United Kingdom'];
+
+        let econChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'GDP Growth (%)',
+                    data: gdpData,
+                    backgroundColor: 'rgba(59, 130, 246, 0.7)', // Blue
+                    borderColor: 'rgb(37, 99, 235)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // Function to update the graph when buttons are clicked
+        function updateGraph(metric) {
+            if (metric === 'gdp') {
+                econChart.data.datasets[0].label = 'GDP Growth (%)';
+                econChart.data.datasets[0].data = gdpData;
+                econChart.data.datasets[0].backgroundColor = 'rgba(59, 130, 246, 0.7)'; // Blue
+                econChart.data.datasets[0].borderColor = 'rgb(37, 99, 235)';
+            } else if (metric === 'inflation') {
+                econChart.data.datasets[0].label = 'Inflation Rate (%)';
+                econChart.data.datasets[0].data = inflationData;
+                econChart.data.datasets[0].backgroundColor = 'rgba(239, 68, 68, 0.7)'; // Red
+                econChart.data.datasets[0].borderColor = 'rgb(220, 38, 38)';
+            }
+            econChart.update(); // Animates to the new data
+        }
+
+        // --- 3. Functional Currency Converter ---
+        const exchangeRates = { "USD": 1, "EUR": 0.92, "GBP": 0.79, "INR": 83.10 };
+        function convertCurrency() {
+            const amount = parseFloat(document.getElementById('conv-amount').value) || 0;
+            const from = document.getElementById('conv-from').value;
+            const to = document.getElementById('conv-to').value;
+            
+            const baseUSD = amount / exchangeRates[from];
+            const finalAmount = baseUSD * exchangeRates[to];
+            
+            const symbols = { "USD": "$", "EUR": "€", "GBP": "£", "INR": "₹" };
+            document.getElementById('conv-result').innerText = symbols[to] + finalAmount.toFixed(2);
+        }
+        convertCurrency();
+
+        // --- 4. Functional Compound Interest Calculator ---
+        function calculateInterest() {
+            const p = parseFloat(document.getElementById('calc-principal').value);
+            const r = parseFloat(document.getElementById('calc-rate').value) / 100;
+            const t = parseFloat(document.getElementById('calc-years').value);
+            
+            if(p && r && t) {
+                const amount = p * Math.pow((1 + r), t);
+                const profit = amount - p;
+                
+                const resultDiv = document.getElementById('calc-result');
+                resultDiv.innerHTML = `Future Value: $${amount.toFixed(2)} <br> <span class="text-sm font-normal">Total Profit: $${profit.toFixed(2)}</span>`;
+                resultDiv.classList.remove('hidden');
+            }
+        }
+
+        // --- 5. Database Logic & Live Search Filtering ---
+        const macroData = [
+            { country: "United States", gdp: "$26.9T", inflation: "3.2%", rate: "5.50%" },
+            { country: "China", gdp: "$17.7T", inflation: "-0.8%", rate: "3.45%" },
+            { country: "Germany", gdp: "$4.4T", inflation: "2.9%", rate: "4.50%" },
+            { country: "Japan", gdp: "$4.2T", inflation: "2.2%", rate: "-0.10%" },
+            { country: "India", gdp: "$3.7T", inflation: "5.1%", rate: "6.50%" },
+            { country: "United Kingdom", gdp: "$3.3T", inflation: "4.0%", rate: "5.25%" }
+        ];
+
+        function renderTable(data) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = ''; 
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition";
+                tr.innerHTML = `
+                    <td class="p-4 font-medium text-slate-800">${row.country}</td>
+                    <td class="p-4 text-slate-600">${row.gdp}</td>
+                    <td class="p-4 text-slate-600">${row.inflation}</td>
+                    <td class="p-4 text-slate-600">${row.rate}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        renderTable(macroData);
+
+        function filterTable() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filteredData = macroData.filter(row => row.country.toLowerCase().includes(query));
+            renderTable(filteredData);
+        }
+
+        // --- 6. Working CSV Export Function ---
+        function downloadCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,Country,GDP (Trillions),Inflation Rate,Interest Rate\n";
+            macroData.forEach(row => {
+                csvContent += `${row.country},${row.gdp},${row.inflation},${row.rate}\n`;
+            });
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "global_macro_data.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Live Clock
+        setInterval(() => {
+            document.getElementById('live-clock').innerText = new Date().toLocaleTimeString();
+        }, 1000);
+    </script>
+</body>
+</html>
